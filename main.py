@@ -1,5 +1,5 @@
 import pygame as p
-from engine import Game
+from engine import Game, Move
 
 # Board dimensions
 HEIGHT = WIDTH = 512
@@ -43,11 +43,29 @@ def main():
     load_images()
 
     running = True
+    selected_square = ()
+    player_clicks = [] 
     while running:
         for e in p.event.get():
             if e.type == p.QUIT:
                 running = False
-
+            elif e.type == p.MOUSEBUTTONDOWN:
+                location = p.mouse.get_pos()
+                col = location[0] // SQ_SIZE
+                row = location[1] // SQ_SIZE
+                if selected_square == (row, col):
+                    selected_square = ()
+                    player_clicks = []
+                else:
+                    selected_square = (row, col)
+                    player_clicks.append(selected_square)
+                    if len(player_clicks) == 2:
+                        move = Move(player_clicks[0], player_clicks[1], gs.chess_board)
+                        print(move.get_chess_notation())
+                        gs.make_move(move)
+                        selected_square = ()
+                        player_clicks = []
+                    
         draw_game_state(screen, gs)
         clock.tick(MAX_FPS)
         p.display.flip()
