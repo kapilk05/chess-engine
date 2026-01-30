@@ -66,7 +66,7 @@ class Game():
         for i in range(len(moves)-1, -1, -1):
             self.make_move(moves[i])
             self.white_to_move = not self.white_to_move
-            if self.in_check:
+            if self.in_check():
                 moves.remove(moves[i])
             self.white_to_move = not self.white_to_move
             self.undo_move()
