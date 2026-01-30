@@ -13,6 +13,8 @@ class Game():
             }
         self.white_king_location = (7, 4)
         self.black_king_location = (0, 4)
+        self.checkmate = False
+        self.stalemate = False
 
     def initialize_board(self):
         board = [
@@ -49,7 +51,7 @@ class Game():
             elif move.piece_moved == 'bk':
                 self.black_king_location = (move.start_row, move.start_col)
 
-    def all_valid_moves(self):
+    def all_possible_moves(self):
         move = []
         for r in range(len(self.chess_board)):
             for c in range(len(self.chess_board[r])):
@@ -59,8 +61,8 @@ class Game():
                     self.move_functions[piece](r, c, move)
         return move
     
-    def valid_moves_when_in_check(self):
-        moves = self.all_valid_moves()
+    def valid_moves(self):
+        moves = self.all_possible_moves()
         for i in range(len(moves)-1, -1, -1):
             self.make_move(moves[i])
             self.white_to_move = not self.white_to_move
@@ -68,6 +70,15 @@ class Game():
                 moves.remove(moves[i])
             self.white_to_move = not self.white_to_move
             self.undo_move()
+        if len(moves) == 0:
+            if self.in_check():
+                self.checkmate = True
+            else:
+                self.stalemate = True
+        else:
+            self.checkmate = False
+            self.stalemate = False
+        
         return moves
     
 
@@ -80,7 +91,7 @@ class Game():
 
     def is_under_check(self, r, c):
         self.white_to_move = not self.white_to_move
-        opponent_moves = self.all_valid_moves()
+        opponent_moves = self.all_possible_moves()
         self.white_to_move = not self.white_to_move
         for move in opponent_moves:
             if move.end_row == r and move.end_col == c:
