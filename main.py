@@ -79,7 +79,7 @@ def main():
                     user_move = True
 
         if user_move:
-            valid_moves = gs.all_valid_moves()
+            valid_moves = gs.all_possible_moves()
             user_move = False
                     
         draw_game_state(screen, gs)
