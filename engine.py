@@ -11,6 +11,8 @@ class Game():
             'q': self.get_valid_queen_moves,
             'k': self.get_valid_king_moves
             }
+        self.white_king_location = (7, 4)
+        self.black_king_location = (0, 4)
 
     def initialize_board(self):
         board = [
@@ -31,6 +33,10 @@ class Game():
         self.chess_board[move.end_row][move.end_col] = move.piece_moved
         self.move_log.append(move)
         self.white_to_move = not self.white_to_move
+        if move.piece_moved == 'wk':
+            self.white_king_location = (move.end_row, move.end_col)
+        elif move.piece_moved == 'bk':
+            self.black_king_location = (move.end_row, move.end_col)
     
     def undo_move(self):
         if len(self.move_log) != 0:
@@ -38,9 +44,10 @@ class Game():
             self.chess_board[move.start_row][move.start_col] = move.piece_moved
             self.chess_board[move.end_row][move.end_col] = move.piece_captured
             self.white_to_move = not self.white_to_move
-
-    def valid_moves_when_in_check(self):
-        return self.all_valid_moves()
+            if move.piece_moved == 'wk':
+                self.white_king_location = (move.start_row, move.start_col)
+            elif move.piece_moved == 'bk':
+                self.black_king_location = (move.start_row, move.start_col)
 
     def all_valid_moves(self):
         move = []
@@ -51,6 +58,34 @@ class Game():
                     piece = self.chess_board[r][c][1]
                     self.move_functions[piece](r, c, move)
         return move
+    
+    def valid_moves_when_in_check(self):
+        moves = self.all_valid_moves()
+        for i in range(len(moves)-1, -1, -1):
+            self.make_move(moves[i])
+            self.white_to_move = not self.white_to_move
+            if self.in_check:
+                moves.remove(moves[i])
+            self.white_to_move = not self.white_to_move
+            self.undo_move()
+        return moves
+    
+
+    def in_check(self):
+        if self.white_to_move:
+            return self.is_under_check(self.white_king_location[0], self.white_king_location[1])
+        else:
+            return self.is_under_check(self.black_king_location[0], self.black_king_location[1])
+    
+
+    def is_under_check(self, r, c):
+        self.white_to_move = not self.white_to_move
+        opponent_moves = self.all_valid_moves()
+        self.white_to_move = not self.white_to_move
+        for move in opponent_moves:
+            if move.end_row == r and move.end_col == c:
+                return True
+        return False
     
 
     def get_valid_pawn_moves(self, r, c, move):
@@ -98,16 +133,52 @@ class Game():
                     break
 
     def get_valid_knight_moves(self, r, c, move):
-        pass  # To be implemented
+        possible_knight_moves = [(-2, -1), (-2, 1), (-1, -2), (-1, 2),(1, -2), (1, 2), (2, -1), (2, 1)]
+        enemy_color = 'b' if self.white_to_move else 'w'
+        for m in possible_knight_moves:
+            end_row = r + m[0]
+            end_col = c + m[1]
+            if 0 <= end_row < 8 and 0 <= end_col < 8:
+                end_piece = self.chess_board[end_row][end_col]
+                if end_piece == '--' or end_piece[0] == enemy_color:
+                    move.append(Move((r, c), (end_row, end_col), self.chess_board)) 
+    
 
     def get_valid_bishop_moves(self, r, c, move):
-        pass  # To be implemented
+        directions = [(-1, -1), (-1, 1), (1, -1), (1, 1)]
+        enemy_color = 'b' if self.white_to_move else 'w'
+        for d in directions:
+            for i in range(1, 8):
+                end_row = r + d[0] * i
+                end_col = c + d[1] * i
+                if 0 <= end_row < 8 and 0 <= end_col < 8:
+                    end_piece = self.chess_board[end_row][end_col]
+                    if end_piece == '--':
+                        move.append(Move((r, c), (end_row, end_col), self.chess_board))
+                    elif end_piece[0] == enemy_color:
+                        move.append(Move((r, c), (end_row, end_col), self.chess_board))
+                        break
+                    else:
+                        break
+                else:
+                    break
+
         
     def get_valid_queen_moves(self, r, c, move):
-        pass  # To be implemented
+        self.get_valid_rook_moves(r, c, move)
+        self.get_valid_bishop_moves(r, c, move)
+
     
     def get_valid_king_moves(self, r, c, move):
-        pass  # To be implemented
+        possible_king_moves = [(-1, -1), (-1, 0), (-1, 1), (0, -1), (0, 1), (1, -1), (1, 0), (1, 1)]
+        enemy_color = 'b' if self.white_to_move else 'w'
+        for m in possible_king_moves:
+            end_row = r + m[0]
+            end_col = c + m[1]
+            if 0 <= end_row < 8 and 0 <= end_col < 8:
+                end_piece = self.chess_board[end_row][end_col]
+                if end_piece == '--' or end_piece[0] == enemy_color:
+                    move.append(Move((r, c), (end_row, end_col), self.chess_board))
 
     
 class Move():
