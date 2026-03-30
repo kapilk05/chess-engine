@@ -40,6 +40,9 @@ def main():
     clock = p.time.Clock()
 
     gs = Game()
+    valid_moves = gs.valid_moves()
+    user_move = False
+
     load_images()
 
     running = True
@@ -62,9 +65,22 @@ def main():
                     if len(player_clicks) == 2:
                         move = Move(player_clicks[0], player_clicks[1], gs.chess_board)
                         print(move.get_chess_notation())
-                        gs.make_move(move)
-                        selected_square = ()
-                        player_clicks = []
+                        if move in valid_moves:
+                            gs.make_move(move)
+                            user_move = True
+                            selected_square = ()
+                            player_clicks = []
+                        else:
+                            player_clicks = [selected_square]
+                        
+            elif e.type == p.KEYDOWN:
+                if e.key == p.K_z:
+                    gs.undo_move()
+                    user_move = True
+
+        if user_move:
+            valid_moves = gs.valid_moves()
+            user_move = False
                     
         draw_game_state(screen, gs)
         clock.tick(MAX_FPS)
