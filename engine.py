@@ -20,6 +20,7 @@ class Game():
         self.pins = []
         self.checks = []
 
+
     def initialize_board(self):
         board = [
             ['br', 'bn', 'bb', 'bq', 'bk', 'bb', 'bn', 'br'],
